@@ -2,15 +2,15 @@
 % Please edit documentation in R/GiottoPlot.R
 \name{GiottoPlot}
 \alias{GiottoPlot}
-\alias{GiottoPlot.scop_giotto_cluster}
-\alias{GiottoPlot.scop_giotto_cell_proximity}
-\alias{GiottoPlot.scop_giotto_spatial_genes}
-\alias{GiottoPlot.scop_giotto_spatial_modules}
+\alias{GiottoPlot.giotto2_cluster}
+\alias{GiottoPlot.giotto2_cell_proximity}
+\alias{GiottoPlot.giotto2_spatial_genes}
+\alias{GiottoPlot.giotto2_spatial_modules}
 \title{Plot Giotto backend results}
 \usage{
 GiottoPlot(x, ...)
 
-\method{GiottoPlot}{scop_giotto_cluster}(
+\method{GiottoPlot}{giotto2_cluster}(
   x,
   srt,
   image = x$parameters$image \%||\% NULL,
@@ -31,7 +31,7 @@ GiottoPlot(x, ...)
   ...
 )
 
-\method{GiottoPlot}{scop_giotto_cell_proximity}(
+\method{GiottoPlot}{giotto2_cell_proximity}(
   x,
   heatmap_palette = "RdBu",
   heatmap_palcolor = NULL,
@@ -42,7 +42,7 @@ GiottoPlot(x, ...)
   ...
 )
 
-\method{GiottoPlot}{scop_giotto_spatial_genes}(
+\method{GiottoPlot}{giotto2_spatial_genes}(
   x,
   srt = NULL,
   plot_type = c("ranking", "feature"),
@@ -68,7 +68,7 @@ GiottoPlot(x, ...)
   ...
 )
 
-\method{GiottoPlot}{scop_giotto_spatial_modules}(
+\method{GiottoPlot}{giotto2_spatial_modules}(
   x,
   features = NULL,
   top_n = 20,
@@ -147,4 +147,29 @@ A \code{ggplot} object.
 Plot standalone Giotto backend results with scop plotting conventions. The
 input \code{Seurat} object, when supplied, is copied internally for plotting and
 is not modified.
+}
+\examples{
+proximity <- list(
+  enrichment = data.frame(
+    group_1 = c("Tumor", "Tumor", "Stroma", "Immune"),
+    group_2 = c("Stroma", "Immune", "Immune", "Tumor"),
+    enrichment = c(1.6, -0.7, 0.9, -1.2),
+    type_int = c("enriched", "depleted", "enriched", "depleted")
+  ),
+  parameters = list(network_method = "Delaunay", number_of_simulations = 100)
+)
+class(proximity) <- c("scop_giotto_cell_proximity", "scop_giotto_result")
+GiottoPlot(proximity)
+
+spatial_genes <- list(
+  results = data.frame(
+    feat_ID = c("COL1A1", "KRT19", "MS4A1", "PECAM1"),
+    spatGeneRank = c(41.2, 32.8, 18.4, 11.9)
+  ),
+  top_features = c("COL1A1", "KRT19", "MS4A1"),
+  parameters = list(assay = "Spatial", layer = "data")
+)
+class(spatial_genes) <- c("scop_giotto_spatial_genes", "scop_giotto_result")
+GiottoPlot(spatial_genes, plot_type = "ranking", top_n = 4)
+
 }

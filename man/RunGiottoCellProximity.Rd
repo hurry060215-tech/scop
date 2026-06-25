@@ -73,7 +73,7 @@ Default is \code{TRUE}.}
 Default is \code{11}.}
 }
 \value{
-A \code{scop_giotto_result} list containing the full Giotto object,
+A \code{giotto2_result} list containing the full Giotto object,
 enrichment table, raw Giotto result, parameters, features, and cells.
 }
 \description{
@@ -81,4 +81,33 @@ Use Giotto as a temporary backend to build a spatial network and test
 pairwise enrichment between metadata groups. The complete Giotto object and
 result tables are returned as a standalone result; the input \code{Seurat} object
 is not modified.
+}
+\examples{
+\dontrun{
+data(visium_human_pancreas_sub)
+spatial <- Seurat::NormalizeData(
+  visium_human_pancreas_sub,
+  assay = "Spatial",
+  verbose = FALSE
+)
+spatial$region <- ifelse(
+  spatial$col > stats::median(spatial$col),
+  "right",
+  "left"
+)
+
+proximity <- RunGiottoCellProximity(
+  spatial,
+  group.by = "region",
+  assay = "Spatial",
+  layer = "data",
+  coord.cols = c("col", "row"),
+  network_method = "Delaunay",
+  number_of_simulations = 100
+)
+
+head(proximity$enrichment)
+GiottoPlot(proximity)
+}
+
 }

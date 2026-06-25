@@ -77,7 +77,7 @@ Default is \code{TRUE}.}
 Default is \code{11}.}
 }
 \value{
-A \code{scop_giotto_result} list containing the full Giotto object,
+A \code{giotto2_result} list containing the full Giotto object,
 spatial gene table, top features, raw Giotto result, parameters, features,
 and cells.
 }
@@ -85,4 +85,40 @@ and cells.
 Use Giotto \code{binSpect()} as a temporary backend for spatially variable gene
 detection. The complete Giotto object and result tables are returned as a
 standalone result; the input \code{Seurat} object is not modified.
+}
+\examples{
+\dontrun{
+data(visium_human_pancreas_sub)
+spatial <- Seurat::NormalizeData(
+  visium_human_pancreas_sub,
+  assay = "Spatial",
+  verbose = FALSE
+)
+spatial <- Seurat::FindVariableFeatures(
+  spatial,
+  assay = "Spatial",
+  nfeatures = 500,
+  verbose = FALSE
+)
+
+giotto_genes <- RunGiottoSpatialGenes(
+  spatial,
+  assay = "Spatial",
+  layer = "data",
+  features = Seurat::VariableFeatures(spatial, assay = "Spatial"),
+  coord.cols = c("col", "row"),
+  top_n = 50
+)
+
+head(giotto_genes$results)
+GiottoPlot(giotto_genes, plot_type = "ranking", top_n = 10)
+GiottoPlot(
+  giotto_genes,
+  srt = spatial,
+  plot_type = "feature",
+  overlay_image = FALSE,
+  coord.cols = c("col", "row")
+)
+}
+
 }

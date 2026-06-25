@@ -3,7 +3,7 @@
 #' @description
 #' Run spatial trajectory or annotation gradient screening for Seurat objects.
 #' The native `"cpp"` backend avoids SPATA2 object construction for fast
-#' distance-based screening, while the `"spata2"` backend keeps full upstream
+#' distance-based screening, while the `"r"` backend keeps full upstream
 #' SPATA2 SAS/STS behavior. Results are normalized into plain data.frames and
 #' stored in `srt@tools[["SpatialGradientFeatures"]]`; the SPATA2 object itself
 #' is never stored.
@@ -14,7 +14,7 @@
 #' @param reference Spatial reference type: `"trajectory"` for STS or
 #' `"annotation"` for SAS.
 #' @param backend Computation backend. `"cpp"` uses SCOP's native fast spatial
-#' gradient implementation and avoids SPATA2 object construction. `"spata2"`
+#' gradient implementation and avoids SPATA2 object construction. `"r"`
 #' uses SPATA2 directly for full upstream SAS/STS behavior.
 #' @param result_name Name used to store this result. If `NULL`, a name is
 #' generated from `reference`.
@@ -70,7 +70,7 @@
 RunSpatialGradientFeatures <- function(
   srt,
   reference = c("trajectory", "annotation"),
-  backend = c("cpp", "spata2"),
+  backend = c("cpp", "r"),
   result_name = NULL,
   spata_object = NULL,
   assay = NULL,
@@ -365,6 +365,61 @@ RunSpatialGradientFeatures <- function(
 #' monotonic trend even when the backend stores a smoothed curve.
 #'
 #' @return A `ggplot` or `patchwork` object.
+#'
+#' @examples
+#' counts <- matrix(
+#'   c(4, 1, 0, 2, 1, 3, 2, 0),
+#'   nrow = 2,
+#'   byrow = TRUE
+#' )
+#' rownames(counts) <- c("REG1A", "COL1A1")
+#' colnames(counts) <- paste0("spot", 1:4)
+#' srt <- Seurat::CreateSeuratObject(counts)
+#' srt <- Seurat::NormalizeData(srt, verbose = FALSE)
+#' srt$col <- c(0, 1, 0, 1)
+#' srt$row <- c(0, 0, 1, 1)
+#'
+#' gradient_result <- list(
+#'   screening = data.frame(
+#'     variable = rep(c("REG1A", "COL1A1"), each = 4),
+#'     distance = rep(seq(0, 1, length.out = 4), 2),
+#'     value = c(0.1, 0.4, 0.8, 1.1, 1.0, 0.7, 0.3, 0.1),
+#'     estimate = c(0.15, 0.45, 0.75, 1.05, 0.95, 0.65, 0.35, 0.05)
+#'   ),
+#'   significance = data.frame(
+#'     variable = c("REG1A", "COL1A1"),
+#'     p_value = c(0.004, 0.018),
+#'     q_value = c(0.008, 0.024)
+#'   ),
+#'   model_fits = data.frame(
+#'     variable = rep(c("REG1A", "COL1A1"), each = 2),
+#'     model = rep(c("linear", "spline"), 2),
+#'     rmse = c(0.12, 0.08, 0.18, 0.11)
+#'   ),
+#'   top_variables = data.frame(
+#'     variable = c("REG1A", "COL1A1"),
+#'     rank = 1:2,
+#'     rmse = c(0.08, 0.11)
+#'   ),
+#'   parameters = data.frame(
+#'     key = c("assay", "layer", "reference"),
+#'     value = c("RNA", "data", "ductal_axis")
+#'   )
+#' )
+#' srt@tools[["SpatialGradientFeatures"]] <- list(ductal_axis = gradient_result)
+#' srt@misc[["SpatialGradientFeaturesResult"]] <- "ductal_axis"
+#'
+#' SpatialGradientPlot(srt, plot_type = "summary", nfeatures = 2)
+#' SpatialGradientPlot(srt, plot_type = "line", nfeatures = 2)
+#' SpatialGradientPlot(srt, plot_type = "model", nfeatures = 2)
+#' SpatialGradientPlot(
+#'   srt,
+#'   plot_type = "surface",
+#'   nfeatures = 2,
+#'   overlay_image = FALSE,
+#'   coord.cols = c("col", "row"),
+#'   pt.size = 4
+#' )
 #' @export
 SpatialGradientPlot <- function(
   srt,
@@ -640,7 +695,7 @@ sgf_run_cpp_gradient <- function(
 ) {
   if (!is.null(annotation_ids) && length(annotation_ids) > 0L) {
     log_message(
-      "{.arg annotation_ids} requires {.arg backend = 'spata2'} because SPATA2 annotation ids are not stored in Seurat metadata",
+      "{.arg annotation_ids} requires {.arg backend = 'r'} because SPATA2 annotation ids are not stored in Seurat metadata",
       message_type = "error"
     )
   }

@@ -132,6 +132,14 @@ reference:
 
 - subtitle: "Dimensionality Reduction and Clustering"
 - contents:
+  - NormalizeData
+  - FindVariableFeatures
+  - ScaleData
+  - RunPCA
+  - RunCCA
+  - RunUMAP
+  - FindNeighbors
+  - SCTransform
   - RunDimsEstimate
   - RunDimsReduction
   - RunDM
@@ -158,20 +166,58 @@ reference:
   - ProjectionPlot
   - TACSPlot
 
-- subtitle: "Spatial Analysis"
+- title: "Spatial Analysis"
+
+- subtitle: "Spatial QC and Normalization"
 - contents:
-  - RunBayesSpace
-  - RunCytoSPACE
+  - RunSpaNorm
+  - RunSpotSweeper
+
+- subtitle: "Spatial Workflow and Giotto Backends"
+- contents:
+  - SeuratToScopGiotto
+  - RunGiottoWorkflow
+  - GiottoPreprocess
+  - GiottoReduce
+  - GiottoCluster
+  - GiottoSpatialNetwork
+  - GiottoSpatialGenes
+  - GiottoSpatialModules
+  - GiottoCellProximity
+  - GiottoHMRF
+  - AddGiottoToSeurat
   - RunGiottoCluster
   - RunGiottoCellProximity
   - RunGiottoSpatialGenes
   - RunGiottoSpatialModules
+
+- subtitle: "Spatial Deconvolution and Ecotypes"
+- contents:
   - RunRCTD
+  - RunCSIDE
+  - RunCARD
+  - RunSTdeconvolve
   - RunSPOTlight
-  - RunSemlaSpatialNetwork
   - RunSpatialEcoTyper
-  - RunSpatialGradientFeatures
+
+- subtitle: "Spatial Domains and Feature Patterns"
+- contents:
+  - RunBayesSpace
+  - RunBANKSY
+  - RunCytoSPACE
+  - RunSmoothClust
+  - RunMERINGUE
   - RunSpatialVariableFeatures
+  - RunSpatialGradientFeatures
+
+- subtitle: "Spatial Neighborhoods and Multi-Sample Integration"
+- contents:
+  - RunSpatialNeighborhood
+  - RunSpatialIntegration
+  - RunSemlaSpatialNetwork
+  - RunSemlaLocalG
+  - RunSemlaRadialDistance
+  - RunSemlaRegionNeighbors
 
 - subtitle: "Spatial Visualization"
 - contents:
@@ -179,7 +225,11 @@ reference:
   - SpatialEcoTyperCompositionPlot
   - SpatialEcoTyperSpatialPlot
   - SpatialGradientPlot
+  - SpatialIntegrationPlot
+  - SpatialNeighborhoodPlot
   - SpatialSpotPlot
+  - SpatialVariableFeaturePlot
+  - STdeconvolvePlot
 
 - subtitle: "Cell Type Annotation"
 - contents:
@@ -197,6 +247,9 @@ reference:
 
 - subtitle: "Differential Expression and Perturbation"
 - contents:
+  - FindAllMarkers
+  - FindMarkers
+  - FoldChange
   - FindExpressedMarkers
   - RunAugur
   - RunDEtest
@@ -219,6 +272,7 @@ reference:
 - contents:
   - RunDeconvolution
   - RunCIBERSORT
+  - RunESTIMATE
   - RunMilo
   - RunPermutation
   - RunPropeller
@@ -229,8 +283,15 @@ reference:
 - contents:
   - DeconvolutionPlot
   - ImmuneAbundancePlot
+  - EstimateScorePlot
+  - EstimateGenePlot
   - GeneImmuneCorPlot
   - ProportionTestPlot
+
+- subtitle: "Copy Number Variation Analysis"
+- contents:
+  - RunCNV
+  - CNVPlot
 
 - subtitle: "Enrichment Analysis"
 - contents:
