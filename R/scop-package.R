@@ -1,4 +1,3 @@
-
 #' @title Single-cell and Spatial omics analysis pipeline
 #'
 #' @description
@@ -84,8 +83,29 @@ print.scop_logo <- function(x, ...) {
 .onAttach <- function(libname, pkgname) {
   options(scop_env_cache = NULL)
 
+  verbose <- thisutils::get_verbose()
+  if (isTRUE(verbose)) {
+    # The loaded namespace also identifies the source tree under pkgload.
+    metadata <- read.dcf(file.path(getNamespaceInfo(pkgname, "path"), "DESCRIPTION"),
+      fields = c("Version", "Date", "URL")
+    )
+    version <- metadata[1L, "Version"]
+    date <- metadata[1L, "Date"]
+    url <- metadata[1L, "URL"]
+    packageStartupMessage(scop_logo())
+    packageStartupMessage(
+      cli::col_grey(strrep("-", 60)),
+      "\n",
+      cli::col_blue("Version: ", version, " (", date, " update)"),
+      "\n",
+      cli::col_blue("Website: ", cli::style_italic(url)),
+      "\n",
+      cli::col_grey(strrep("-", 60))
+    )
+  }
+
   if (
-    isTRUE(thisutils::get_verbose()) &&
+    isTRUE(verbose) &&
       isTRUE(getOption("scop_env_init", default = FALSE))
   ) {
     tryCatch(
