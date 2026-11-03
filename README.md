@@ -886,75 +886,86 @@ if (interactive()) {
 
 <img src="https://raw.githubusercontent.com/mengxu98/figures/main/scop/SCExplorer-1.png" width="100%" style="display: block; margin: auto;"/>
 
-### Other visualization examples
-
-[**CellDimPlot**](https://mengxu98.github.io/scop/reference/CellDimPlot.html)![Example1](https://raw.githubusercontent.com/mengxu98/figures/main/scop/Example-1.png) 
-
-[**CellStatPlot**](https://mengxu98.github.io/scop/reference/CellStatPlot.html)![Example2](https://raw.githubusercontent.com/mengxu98/figures/main/scop/Example-2.png)
-
-[**FeatureStatPlot**](https://mengxu98.github.io/scop/reference/FeatureStatPlot.html)![Example3](https://raw.githubusercontent.com/mengxu98/figures/main/scop/Example-3.png)
-
-[**GroupHeatmap**](https://mengxu98.github.io/scop/reference/GroupHeatmap.html)![Example3](https://raw.githubusercontent.com/mengxu98/figures/main/scop/Example-4.png)
-
-You can also find more examples in the documentation of the function: [integration_scop](https://mengxu98.github.io/scop/reference/integration_scop.html), [RunKNNMap](https://mengxu98.github.io/scop/reference/RunKNNMap.html), [RunPalantir](https://mengxu98.github.io/scop/reference/RunPalantir.html), etc.
-
-
 <!-- additional-visualizations:start -->
 
-#### 01. Spatial tissue map
+### Spatial tissue map
 
 ```r
-SpatialSpotPlot(
+p <- SpatialSpotPlot(
   spatial, group.by = "coda_label", image = "slice1",
   palcolor = tissue_colors, pt.size = 2.2, image.alpha = 0.4
 )
+p & ggplot2::theme(
+  plot.title = ggplot2::element_blank(),
+  plot.subtitle = ggplot2::element_blank(),
+  plot.caption = ggplot2::element_blank()
+)
 ```
 
-<img src=".github/readme-figures/01-spatial-tissue.png" width="100%" alt="Spatial tissue map"/>
+<img src=".github/readme-figures/01-spatial-tissue.svg#gh-light-mode-only" width="100%" alt="Spatial tissue map"/>
+<img src=".github/readme-figures/01-spatial-tissue-dark.svg#gh-dark-mode-only" width="100%" alt="Spatial tissue map"/>
 
-#### 02. Spatial gene expression
+### Spatial gene expression
 
 ```r
-SpatialSpotPlot(
+p <- SpatialSpotPlot(
   spatial,
   features = c("GCG", "COL1A1", "PRSS1"),
   assay = "Spatial", layer = "data", image = "slice1",
   palette = "YlOrRd", pt.size = 1.1,
   image.alpha = 0.3, ncol = 2
 )
+p & ggplot2::theme(
+  plot.title = ggplot2::element_blank(),
+  plot.subtitle = ggplot2::element_blank(),
+  plot.caption = ggplot2::element_blank()
+)
 ```
 
-<img src=".github/readme-figures/02-spatial-expression.png" width="100%" alt="Spatial gene expression"/>
+<img src=".github/readme-figures/02-spatial-expression.svg#gh-light-mode-only" width="100%" alt="Spatial gene expression"/>
+<img src=".github/readme-figures/02-spatial-expression-dark.svg#gh-dark-mode-only" width="100%" alt="Spatial gene expression"/>
 
-#### 03. Spatial neighbor network
+### Spatial neighbor network
 
 ```r
 spatial <- RunSpatialNetwork(
   spatial, k = 6, image = "slice1", verbose = FALSE
 )
-SpatialNetworkPlot(
+p <- SpatialNetworkPlot(
   spatial, group.by = "coda_label", palcolor = tissue_colors,
   edge.linewidth = 0.12, pt.size = 1.8
 )
+p & ggplot2::theme(
+  plot.title = ggplot2::element_blank(),
+  plot.subtitle = ggplot2::element_blank(),
+  plot.caption = ggplot2::element_blank()
+)
 ```
 
-<img src=".github/readme-figures/03-spatial-network.png" width="100%" alt="Spatial neighbor network"/>
+<img src=".github/readme-figures/03-spatial-network.svg#gh-light-mode-only" width="100%" alt="Spatial neighbor network"/>
+<img src=".github/readme-figures/03-spatial-network-dark.svg#gh-dark-mode-only" width="100%" alt="Spatial neighbor network"/>
 
-#### 04. Neighborhood composition
+### Neighborhood composition
 
 ```r
 spatial <- RunSpatialNeighborhood(
   spatial, group.by = "coda_label", image = "slice1",
   method = "observed", k = 6, backend = "r", verbose = FALSE
 )
-SpatialNeighborhoodPlot(
+p <- SpatialNeighborhoodPlot(
   spatial, plot_type = "heatmap", value = "fraction"
+)
+p & ggplot2::theme(
+  plot.title = ggplot2::element_blank(),
+  plot.subtitle = ggplot2::element_blank(),
+  plot.caption = ggplot2::element_blank()
 )
 ```
 
-<img src=".github/readme-figures/04-neighborhood.png" width="100%" alt="Neighborhood composition"/>
+<img src=".github/readme-figures/04-neighborhood.svg#gh-light-mode-only" width="100%" alt="Neighborhood composition"/>
+<img src=".github/readme-figures/04-neighborhood-dark.svg#gh-dark-mode-only" width="100%" alt="Neighborhood composition"/>
 
-#### 05. ATAC embedding
+### ATAC embedding
 
 ```r
 p <- CellDimPlot(
@@ -962,15 +973,20 @@ p <- CellDimPlot(
   label = TRUE, label_insitu = TRUE, label.size = 3, pt.size = NULL,
   xlab = "UMAP_1", ylab = "UMAP_2", theme_use = "theme_blank"
 )
-p
+p & ggplot2::theme(
+  plot.title = ggplot2::element_blank(),
+  plot.subtitle = ggplot2::element_blank(),
+  plot.caption = ggplot2::element_blank()
+)
 ```
 
-<img src=".github/readme-figures/05-atac-embedding.png" width="50%" alt="ATAC embedding"/>
+<img src=".github/readme-figures/05-atac-embedding.svg#gh-light-mode-only" width="50%" alt="ATAC embedding"/>
+<img src=".github/readme-figures/05-atac-embedding-dark.svg#gh-dark-mode-only" width="50%" alt="ATAC embedding"/>
 
-#### 07. Motif-associated accessibility
+### Motif-associated accessibility
 
 ```r
-FeatureDimPlot(
+p <- FeatureDimPlot(
   atac_motif, features = c(SPI1 = "MA0080.5", RELA = "MA0107.1"),
   assay = "chromvar", layer = "data", reduction = "ATACInitialUMAP2D",
   ncol = 2, pt.size = NULL, bg_cutoff = -Inf,
@@ -978,85 +994,117 @@ FeatureDimPlot(
   palcolor = c("#2166AC", "#F7F7F7", "#B2182B"),
   xlab = "UMAP_1", ylab = "UMAP_2", theme_use = "theme_blank"
 )
+p & ggplot2::theme(
+  plot.title = ggplot2::element_blank(),
+  plot.subtitle = ggplot2::element_blank(),
+  plot.caption = ggplot2::element_blank()
+)
 ```
 
-<img src=".github/readme-figures/12-atac-chromvar.png" width="100%" alt="Motif-associated accessibility"/>
+<img src=".github/readme-figures/12-atac-chromvar.svg#gh-light-mode-only" width="100%" alt="Motif-associated accessibility"/>
+<img src=".github/readme-figures/12-atac-chromvar-dark.svg#gh-dark-mode-only" width="100%" alt="Motif-associated accessibility"/>
 
-#### 08. Communication circle
+### Communication circle
 
 ```r
 CCCNetworkPlot(
   cellchat, method = "CellChat", plot_type = "circle",
-  top_n = 18, directed = TRUE, font.size = 11
+  top_n = 18, directed = TRUE, font.size = 11, title = "", subtitle = ""
 )
 ```
 
-<img src=".github/readme-figures/07-ccc-circle.png" width="100%" alt="Communication circle"/>
+<img src=".github/readme-figures/07-ccc-circle.svg#gh-light-mode-only" width="100%" alt="Communication circle"/>
+<img src=".github/readme-figures/07-ccc-circle-dark.svg#gh-dark-mode-only" width="100%" alt="Communication circle"/>
 
-#### 09. Communication flow
+### Communication flow
 
 ```r
-CCCNetworkPlot(
+p <- CCCNetworkPlot(
   cellchat, method = "CellChat", plot_type = "sigmoid",
   top_n = 18, directed = TRUE, font.size = 11
 )
-```
-
-<img src=".github/readme-figures/07-ccc-sigmoid.png" width="100%" alt="Communication flow"/>
-
-#### 10. Ligand-receptor bipartite network
-
-```r
-CCCNetworkPlot(
-  cellchat, method = "CellChat", plot_type = "bipartite",
-  top_n = 18, directed = TRUE, font.size = 11
+p & ggplot2::theme(
+  plot.title = ggplot2::element_blank(),
+  plot.subtitle = ggplot2::element_blank(),
+  plot.caption = ggplot2::element_blank()
 )
 ```
 
-<img src=".github/readme-figures/07-ccc-bipartite.png" width="100%" alt="Ligand-receptor bipartite network"/>
+<img src=".github/readme-figures/07-ccc-sigmoid.svg#gh-light-mode-only" width="100%" alt="Communication flow"/>
+<img src=".github/readme-figures/07-ccc-sigmoid-dark.svg#gh-dark-mode-only" width="100%" alt="Communication flow"/>
 
-#### 11. Gene-level communication chord
+### Ligand-receptor bipartite network
+
+```r
+p <- CCCNetworkPlot(
+  cellchat, method = "CellChat", plot_type = "bipartite",
+  top_n = 18, directed = TRUE, font.size = 11
+)
+p & ggplot2::theme(
+  plot.title = ggplot2::element_blank(),
+  plot.subtitle = ggplot2::element_blank(),
+  plot.caption = ggplot2::element_blank()
+)
+```
+
+<img src=".github/readme-figures/07-ccc-bipartite.svg#gh-light-mode-only" width="100%" alt="Ligand-receptor bipartite network"/>
+<img src=".github/readme-figures/07-ccc-bipartite-dark.svg#gh-dark-mode-only" width="100%" alt="Ligand-receptor bipartite network"/>
+
+### Gene-level communication chord
 
 ```r
 CCCNetworkPlot(
   cellchat, method = "CellChat", plot_type = "gene_chord",
   sender.use = c("Ductal", "Ngn3-high-EP", "Pre-endocrine"),
   receiver.use = c("Ductal", "Ngn3-high-EP", "Pre-endocrine"),
-  top_n = 4, directed = TRUE, font.size = 11
+  top_n = 4, directed = TRUE, font.size = 11, title = "", subtitle = ""
 )
 ```
 
-<img src=".github/readme-figures/07-ccc-gene_chord.png" width="100%" alt="Gene-level communication chord"/>
+<img src=".github/readme-figures/07-ccc-gene_chord.svg#gh-light-mode-only" width="100%" alt="Gene-level communication chord"/>
+<img src=".github/readme-figures/07-ccc-gene_chord-dark.svg#gh-dark-mode-only" width="100%" alt="Gene-level communication chord"/>
 
-#### 12. Mirrored enrichment rankings
+### Mirrored enrichment rankings
 
 ```r
-EnrichmentMirrorPlot(
+p <- EnrichmentMirrorPlot(
   res = enrichment_result,
   group_use = c("Ductal", "Endocrine"), db = "GO_BP", topTerm = 5,
   term_size = 4.2, gene_size = 3.1, base_size = 14,
   gene_width = 50, row_step = 1.05,
-  title = "Ductal and endocrine GO enrichment"
+  title = ""
+)
+p & ggplot2::theme(
+  plot.title = ggplot2::element_blank(),
+  plot.subtitle = ggplot2::element_blank(),
+  plot.caption = ggplot2::element_blank()
 )
 ```
 
-<img src=".github/readme-figures/08-enrichment-mirror.png" width="100%" alt="Mirrored enrichment rankings"/>
+<img src=".github/readme-figures/08-enrichment-mirror.svg#gh-light-mode-only" width="100%" alt="Mirrored enrichment rankings"/>
+<img src=".github/readme-figures/08-enrichment-mirror-dark.svg#gh-dark-mode-only" width="100%" alt="Mirrored enrichment rankings"/>
 
-#### 13. Enrichment rank plot
+### Enrichment rank plot
 
 ```r
-EnrichmentPlot(
+p <- EnrichmentPlot(
   res = enrichment_result,
   group_use = c("Ductal", "Endocrine"), db = "GO_BP",
   plot_type = "rank", topTerm = 60, rank_nlabel = 4,
   rank_label_size = 4.2, ncol = 2,
   theme_args = list(base_size = 13)
 )
+p & ggplot2::theme(
+  plot.title = ggplot2::element_blank(),
+  plot.subtitle = ggplot2::element_blank(),
+  plot.caption = ggplot2::element_blank()
+)
 ```
 
-<img src=".github/readme-figures/09-enrichment-rank.png" width="100%" alt="Enrichment rank plot"/>
+<img src=".github/readme-figures/09-enrichment-rank.svg#gh-light-mode-only" width="100%" alt="Enrichment rank plot"/>
+<img src=".github/readme-figures/09-enrichment-rank-dark.svg#gh-dark-mode-only" width="100%" alt="Enrichment rank plot"/>
 
-#### 14. Annotated enrichment bars
+### Annotated enrichment bars
 
 ```r
 panels <- EnrichmentPlot(
@@ -1082,10 +1130,28 @@ panels <- lapply(panels, function(p) {
   }
   p
 })
-patchwork::wrap_plots(panels, ncol = 2, guides = "collect") &
+p <- patchwork::wrap_plots(panels, ncol = 2, guides = "collect") &
   ggplot2::theme(legend.position = "bottom")
+p & ggplot2::theme(
+  plot.title = ggplot2::element_blank(),
+  plot.subtitle = ggplot2::element_blank(),
+  plot.caption = ggplot2::element_blank()
+)
 ```
 
-<img src=".github/readme-figures/10-enrichment-annotated.png" width="100%" alt="Annotated enrichment bars"/>
+<img src=".github/readme-figures/10-enrichment-annotated.svg#gh-light-mode-only" width="100%" alt="Annotated enrichment bars"/>
+<img src=".github/readme-figures/10-enrichment-annotated-dark.svg#gh-dark-mode-only" width="100%" alt="Annotated enrichment bars"/>
 
 <!-- additional-visualizations:end -->
+
+### Other visualization examples
+
+[**CellDimPlot**](https://mengxu98.github.io/scop/reference/CellDimPlot.html)![Example1](https://raw.githubusercontent.com/mengxu98/figures/main/scop/Example-1.png)
+
+[**CellStatPlot**](https://mengxu98.github.io/scop/reference/CellStatPlot.html)![Example2](https://raw.githubusercontent.com/mengxu98/figures/main/scop/Example-2.png)
+
+[**FeatureStatPlot**](https://mengxu98.github.io/scop/reference/FeatureStatPlot.html)![Example3](https://raw.githubusercontent.com/mengxu98/figures/main/scop/Example-3.png)
+
+[**GroupHeatmap**](https://mengxu98.github.io/scop/reference/GroupHeatmap.html)![Example3](https://raw.githubusercontent.com/mengxu98/figures/main/scop/Example-4.png)
+
+You can also find more examples in the documentation of the function: [integration_scop](https://mengxu98.github.io/scop/reference/integration_scop.html), [RunKNNMap](https://mengxu98.github.io/scop/reference/RunKNNMap.html), [RunPalantir](https://mengxu98.github.io/scop/reference/RunPalantir.html), etc.
