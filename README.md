@@ -897,3 +897,338 @@ if (interactive()) {
 [**GroupHeatmap**](https://mengxu98.github.io/scop/reference/GroupHeatmap.html)![Example3](https://raw.githubusercontent.com/mengxu98/figures/main/scop/Example-4.png)
 
 You can also find more examples in the documentation of the function: [integration_scop](https://mengxu98.github.io/scop/reference/integration_scop.html), [RunKNNMap](https://mengxu98.github.io/scop/reference/RunKNNMap.html), [RunPalantir](https://mengxu98.github.io/scop/reference/RunPalantir.html), etc.
+
+
+<!-- additional-visualizations:start -->
+### Additional visualization examples
+
+These figures were generated with [upstream scop at `2f5a66cc3`](https://github.com/mengxu98/scop/commit/2f5a66cc3).
+They preview recent plotting interfaces; use that upstream version or a compatible newer version to run the examples.
+The numbered examples below retain their review IDs.
+
+<details>
+<summary>Example data preparation</summary>
+
+The spatial and ATAC embedding examples use packaged measured data.
+
+```r
+library(scop)
+data(visium_human_pancreas_sub)
+spatial <- visium_human_pancreas_sub
+SeuratObject::DefaultAssay(spatial) <- "Spatial"
+spatial <- Seurat::NormalizeData(spatial, assay = "Spatial", verbose = FALSE)
+tissue_colors <- c(
+  acini = "#E69F00", collagen = "#56B4E9", fat = "#009E73",
+  islets = "#CC79A7", `normal epithelium` = "#0072B2",
+  panin = "#D55E00", `smooth muscle` = "#777777"
+)
+
+data(pbmcmultiome_sub)
+atac <- RunStandardWorkflow(
+  pbmcmultiome_sub, assay = "peaks", nHVF = 4000,
+  linear_reduction_dims = 25, linear_reduction_dims_use = 2:20,
+  neighbor_k = 20, nonlinear_reduction_dims = 2,
+  cores = 1, verbose = FALSE
+)
+```
+
+The communication examples use actual CellChat inference on the packaged mouse
+pancreas data. Prepare its optional backend before running this block.
+
+```r
+data(pancreas_sub)
+cellchat <- Seurat::NormalizeData(pancreas_sub, verbose = FALSE)
+cellchat <- RunCellChat(
+  cellchat, group.by = "SubCellType", species = "Mus_musculus",
+  backend = "r", verbose = FALSE
+)
+```
+
+For `atac_motif`, use the saved object produced by the
+[ATAC matrix and chromVAR workflow](https://mengxu98.github.io/scop/articles/atac-matrix-workflow.html).
+The displayed result contains 1,000 measured PBMC ATAC cells and 15,856 chr1 peaks,
+with native chromVAR scores stored in the `chromvar` assay. It is a separate dataset
+from the 500-cell multiome embedding above.
+
+The enrichment panels use positive group-versus-rest markers and GO biological
+process enrichment, computed with Seurat, clusterProfiler and org.Mm.eg.db:
+
+```r
+data(pancreas_sub)
+pancreas <- Seurat::NormalizeData(pancreas_sub, verbose = FALSE)
+SeuratObject::Idents(pancreas) <- "CellType"
+markers <- Seurat::FindAllMarkers(
+  pancreas, only.pos = TRUE, logfc.threshold = 0.5,
+  min.pct = 0.15, verbose = FALSE
+)
+groups <- c("Ductal", "Endocrine")
+tables <- lapply(groups, function(group) {
+  genes <- unique(markers$gene[
+    as.character(markers$cluster) == group & markers$p_val_adj < 0.05
+  ])
+  result <- clusterProfiler::enrichGO(
+    gene = genes, universe = rownames(pancreas),
+    OrgDb = org.Mm.eg.db::org.Mm.eg.db, keyType = "SYMBOL", ont = "BP",
+    pvalueCutoff = 0.05, qvalueCutoff = 0.2,
+    minGSSize = 10, maxGSSize = 500
+  )
+  tab <- as.data.frame(result)
+  tab$Groups <- group
+  tab$Database <- "GO_BP"
+  ratio <- function(x) vapply(strsplit(x, "/"), function(v) {
+    as.numeric(v[1]) / as.numeric(v[2])
+  }, numeric(1))
+  tab$FoldEnrichment <- ratio(tab$GeneRatio) / ratio(tab$BgRatio)
+  tab
+})
+enrichment_result <- list(enrichment = do.call(rbind, tables))
+```
+
+</details>
+
+#### 01. Spatial tissue map
+
+[**SpatialSpotPlot**](https://mengxu98.github.io/scop/reference/SpatialSpotPlot.html)
+
+Measured Visium spots colored by the supplied tissue labels.
+
+```r
+SpatialSpotPlot(
+  spatial, group.by = "coda_label", image = "slice1",
+  palcolor = tissue_colors, pt.size = 2.2, image.alpha = 0.4
+)
+```
+
+<img src=".github/readme-figures/01-spatial-tissue.png" width="100%" alt="Spatial tissue map"/>
+
+#### 02. Spatial gene expression
+
+[**SpatialSpotPlot**](https://mengxu98.github.io/scop/reference/SpatialSpotPlot.html)
+
+Log-normalized expression on the same tissue section. Each feature has its own color scale.
+
+```r
+SpatialSpotPlot(
+  spatial,
+  features = c("GCG", "COL1A1", "PRSS1"),
+  assay = "Spatial", layer = "data", image = "slice1",
+  palette = "YlOrRd", pt.size = 1.1,
+  image.alpha = 0.3, ncol = 2
+)
+```
+
+<img src=".github/readme-figures/02-spatial-expression.png" width="100%" alt="Spatial gene expression"/>
+
+#### 03. Spatial neighbor network
+
+[**SpatialNetworkPlot**](https://mengxu98.github.io/scop/reference/SpatialNetworkPlot.html)
+
+Edges connect spatial neighbors (k = 6); they do not represent inferred ligand-receptor communication.
+
+```r
+spatial <- RunSpatialNetwork(
+  spatial, k = 6, image = "slice1", verbose = FALSE
+)
+SpatialNetworkPlot(
+  spatial, group.by = "coda_label", palcolor = tissue_colors,
+  edge.linewidth = 0.12, pt.size = 1.8
+)
+```
+
+<img src=".github/readme-figures/03-spatial-network.png" width="100%" alt="Spatial neighbor network"/>
+
+#### 04. Neighborhood composition
+
+[**SpatialNeighborhoodPlot**](https://mengxu98.github.io/scop/reference/SpatialNeighborhoodPlot.html)
+
+Observed neighboring-label fractions within this section; this is not a differential enrichment test.
+
+```r
+spatial <- RunSpatialNeighborhood(
+  spatial, group.by = "coda_label", image = "slice1",
+  method = "observed", k = 6, backend = "r", verbose = FALSE
+)
+SpatialNeighborhoodPlot(
+  spatial, plot_type = "heatmap", value = "fraction"
+)
+```
+
+<img src=".github/readme-figures/04-neighborhood.png" width="100%" alt="Neighborhood composition"/>
+
+#### 05. ATAC embedding
+
+[**CellDimPlot**](https://mengxu98.github.io/scop/reference/CellDimPlot.html)
+
+TF-IDF/LSI/UMAP computed from the measured peak matrix of 500 packaged multiome cells. Colors show the supplied cell labels.
+
+```r
+p <- CellDimPlot(
+  atac, group.by = "CellType", reduction = "ATACUMAP2D",
+  label = TRUE, label_insitu = TRUE, label.size = 3, pt.size = NULL,
+  xlab = "UMAP_1", ylab = "UMAP_2", theme_use = "theme_blank"
+)
+p
+# Export size: width = 4.5, height = 3 inches.
+```
+
+<img src=".github/readme-figures/05-atac-embedding.png" width="50%" alt="ATAC embedding"/>
+
+#### 07. Motif-associated accessibility
+
+[**FeatureDimPlot**](https://mengxu98.github.io/scop/reference/FeatureDimPlot.html)
+
+Saved chromVAR scores from a measured 1,000-cell PBMC ATAC analysis restricted to chr1. This separate dataset is not the 500-cell multiome example above. Both positive and negative scores are displayed, with a shared color range capped at -3 and +3. These scores do not establish TF binding.
+
+```r
+FeatureDimPlot(
+  atac_motif, features = c(SPI1 = "MA0080.5", RELA = "MA0107.1"),
+  assay = "chromvar", layer = "data", reduction = "ATACInitialUMAP2D",
+  ncol = 2, pt.size = NULL, bg_cutoff = -Inf,
+  lower_cutoff = -3, upper_cutoff = 3, keep_scale = "all",
+  palcolor = c("#2166AC", "#F7F7F7", "#B2182B"),
+  xlab = "UMAP_1", ylab = "UMAP_2", theme_use = "theme_blank"
+)
+# Export size: width = 9, height = 3 inches.
+```
+
+<img src=".github/readme-figures/12-atac-chromvar.png" width="100%" alt="Motif-associated accessibility"/>
+
+#### 08. Communication circle
+
+[**CCCNetworkPlot**](https://mengxu98.github.io/scop/reference/CCCNetworkPlot.html)
+
+CellChat inference on the measured mouse pancreas expression matrix, grouped by SubCellType.
+
+```r
+CCCNetworkPlot(
+  cellchat, method = "CellChat", plot_type = "circle",
+  top_n = 18, directed = TRUE, font.size = 11
+)
+```
+
+<img src=".github/readme-figures/07-ccc-circle.png" width="100%" alt="Communication circle"/>
+
+#### 09. Communication flow
+
+[**CCCNetworkPlot**](https://mengxu98.github.io/scop/reference/CCCNetworkPlot.html)
+
+The sigmoid layout shows communication flow using the same saved CellChat result.
+
+```r
+CCCNetworkPlot(
+  cellchat, method = "CellChat", plot_type = "sigmoid",
+  top_n = 18, directed = TRUE, font.size = 11
+)
+```
+
+<img src=".github/readme-figures/07-ccc-sigmoid.png" width="100%" alt="Communication flow"/>
+
+#### 10. Ligand-receptor bipartite network
+
+[**CCCNetworkPlot**](https://mengxu98.github.io/scop/reference/CCCNetworkPlot.html)
+
+Sender cells, a ligand, its receptor and receiver cells. The default selects the ligand with the highest total score in the saved result.
+
+```r
+CCCNetworkPlot(
+  cellchat, method = "CellChat", plot_type = "bipartite",
+  top_n = 18, directed = TRUE, font.size = 11
+)
+```
+
+<img src=".github/readme-figures/07-ccc-bipartite.png" width="100%" alt="Ligand-receptor bipartite network"/>
+
+#### 11. Gene-level communication chord
+
+[**CCCNetworkPlot**](https://mengxu98.github.io/scop/reference/CCCNetworkPlot.html)
+
+Restricted to three cell populations and four top interaction identities to keep the gene-level view readable. Connections are inference, not measured molecular transport.
+
+```r
+CCCNetworkPlot(
+  cellchat, method = "CellChat", plot_type = "gene_chord",
+  sender.use = c("Ductal", "Ngn3-high-EP", "Pre-endocrine"),
+  receiver.use = c("Ductal", "Ngn3-high-EP", "Pre-endocrine"),
+  top_n = 4, directed = TRUE, font.size = 11
+)
+```
+
+<img src=".github/readme-figures/07-ccc-gene_chord.png" width="100%" alt="Gene-level communication chord"/>
+
+#### 12. Mirrored enrichment rankings
+
+[**EnrichmentMirrorPlot**](https://mengxu98.github.io/scop/reference/EnrichmentMirrorPlot.html)
+
+GO enrichment of independently selected group-versus-rest markers. Opposite rows can show different pathways; leftward bars do not indicate downregulation or negative enrichment.
+
+```r
+EnrichmentMirrorPlot(
+  res = enrichment_result,
+  group_use = c("Ductal", "Endocrine"), db = "GO_BP", topTerm = 5,
+  term_size = 4.2, gene_size = 3.1, base_size = 14,
+  gene_width = 50, row_step = 1.05,
+  title = "Ductal and endocrine GO enrichment"
+)
+# Export size: width = 12, height = 6.5 inches.
+```
+
+<img src=".github/readme-figures/08-enrichment-mirror.png" width="100%" alt="Mirrored enrichment rankings"/>
+
+#### 13. Enrichment rank plot
+
+[**EnrichmentPlot**](https://mengxu98.github.io/scop/reference/EnrichmentPlot.html)
+
+Pathways ranked by fold enrichment, with selected labels and significance-scaled points. The soft contour is decorative, not an uncertainty interval.
+
+```r
+EnrichmentPlot(
+  res = enrichment_result,
+  group_use = c("Ductal", "Endocrine"), db = "GO_BP",
+  plot_type = "rank", topTerm = 60, rank_nlabel = 4,
+  rank_label_size = 4.2, ncol = 2,
+  theme_args = list(base_size = 13)
+)
+# Export size: width = 11, height = 5.5 inches.
+```
+
+<img src=".github/readme-figures/09-enrichment-rank.png" width="100%" alt="Enrichment rank plot"/>
+
+#### 14. Annotated enrichment bars
+
+[**EnrichmentPlot**](https://mengxu98.github.io/scop/reference/EnrichmentPlot.html)
+
+Top terms with contributing genes, database bands and count markers.
+
+```r
+panels <- EnrichmentPlot(
+  res = enrichment_result,
+  group_use = c("Ductal", "Endocrine"), db = "GO_BP",
+  plot_type = "annotated_bar", topTerm = 5, combine = FALSE,
+  theme_args = list(base_size = 14), row_step = 1.4,
+  gene_width = 50, character_width = 55
+)
+# Enlarge the text layers in the returned ggplots.
+panels <- lapply(panels, function(p) {
+  p$data$.term <- vapply(p$data$Description, function(x) {
+    paste(strwrap(x, width = 38), collapse = "\n")
+  }, character(1))
+  for (i in seq_along(p$layers)) {
+    if (inherits(p$layers[[i]]$geom, "GeomText")) {
+      italic <- identical(p$layers[[i]]$aes_params$fontface, "italic")
+      p$layers[[i]]$aes_params$size <- if (italic) 3.2 else 4.2
+      p$layers[[i]]$aes_params$lineheight <- 0.85
+      if (italic) {
+        p$layers[[i]]$mapping$y <- ggplot2::aes(y = .data$.y - 0.55)$y
+      }
+    }
+  }
+  p
+})
+patchwork::wrap_plots(panels, ncol = 2, guides = "collect") &
+  ggplot2::theme(legend.position = "bottom")
+# Export size: width = 12, height = 6.5 inches.
+```
+
+<img src=".github/readme-figures/10-enrichment-annotated.png" width="100%" alt="Annotated enrichment bars"/>
+
+<!-- additional-visualizations:end -->
